@@ -1,0 +1,19 @@
+{
+    "name": "Game.Unity",
+    "rootNamespace": "Game.Unity",
+    "references": [
+        "Game.Core",
+        "Game.Net",
+        "Game.Replay",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
