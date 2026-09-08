@@ -2,7 +2,12 @@
     "name": "Game.Net",
     "rootNamespace": "Game.Net",
     "references": [
-        "Game.Core"
+        "Game.Core",
+        "Unity.Netcode.Runtime",
+        "Unity.Services.Core",
+        "Unity.Services.Authentication",
+        "Unity.Services.Multiplayer",
+        "Unity.Services.Vivox"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
