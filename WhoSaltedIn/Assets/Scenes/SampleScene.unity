@@ -129,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 181084349}
   - component: {fileID: 181084347}
+  - component: {fileID: 181084350}
   m_Layer: 0
   m_Name: Test
   m_TagString: Untagged
@@ -150,6 +151,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Net::Game.Net.SessionCheck
   sessionId: who-salted-in-dev
   maxPlayers: 4
+  voice: {fileID: 181084350}
 --- !u!4 &181084349
 Transform:
   m_ObjectHideFlags: 0
@@ -165,6 +167,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &181084350
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 181084346}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a176b9920dcbd8843b014dfe61dad08b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Net::Game.Net.VoiceCheck
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -590,5 +604,5 @@ SceneRoots:
   - {fileID: 330585546}
   - {fileID: 410087041}
   - {fileID: 832575519}
-  - {fileID: 181084349}
   - {fileID: 1719975910}
+  - {fileID: 181084349}

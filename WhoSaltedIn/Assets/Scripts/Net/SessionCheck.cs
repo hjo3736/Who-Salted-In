@@ -11,6 +11,7 @@ namespace Game.Net
     {
         [SerializeField] string sessionId = "who-salted-in-dev";
         [SerializeField] int maxPlayers = 4;
+        [SerializeField] VoiceCheck voice;
 
         ISession session;
 
@@ -40,6 +41,11 @@ namespace Game.Net
                 session.RemovedFromSession += () => Log("removed from session");
 
                 Log($"connected isHost={session.IsHost} code={session.Code}");
+
+                if (voice != null)
+                {
+                    await voice.RunAsync();
+                }
             }
             catch (Exception e)
             {
