@@ -565,8 +565,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Net::Game.Net.TurnDriver
   ShowTopMostFoldoutHeaderGroup: 1
-  turnSeconds: 60
-  rounds: 2
+  averageTurnSeconds: 30
+  minTurnSeconds: 20
+  warnSeconds: 10
   minPlayers: 3
   voice: {fileID: 181084350}
 --- !u!1 &1719975907

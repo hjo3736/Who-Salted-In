@@ -8,10 +8,13 @@ namespace Game.Core
         public const int NotStarted = -1;
 
         readonly List<ulong> order = new List<ulong>();
+        readonly List<int> seconds = new List<int>();
 
         public KitchenState Kitchen { get; } = new KitchenState();
 
         public IReadOnlyList<ulong> Order => order;
+
+        public IReadOnlyList<int> Seconds => seconds;
 
         public int TurnIndex { get; private set; } = NotStarted;
 
@@ -23,6 +26,8 @@ namespace Game.Core
 
         public bool IsCurrentPlayer(ulong player) => IsRunning && order[TurnIndex] == player;
 
+        public int? CurrentTurnSeconds => IsRunning ? seconds[TurnIndex] : (int?)null;
+
         public void Apply(IGameEvent gameEvent)
         {
             if (gameEvent == null)
@@ -33,11 +38,16 @@ namespace Game.Core
             gameEvent.Apply(this);
         }
 
-        internal void SetOrder(IReadOnlyList<ulong> newOrder)
+        internal void SetSchedule(IReadOnlyList<ulong> newOrder, IReadOnlyList<int> newSeconds)
         {
             if (newOrder == null)
             {
                 throw new ArgumentNullException(nameof(newOrder));
+            }
+
+            if (newSeconds == null)
+            {
+                throw new ArgumentNullException(nameof(newSeconds));
             }
 
             if (newOrder.Count == 0)
@@ -45,8 +55,16 @@ namespace Game.Core
                 throw new ArgumentException("Turn order cannot be empty.", nameof(newOrder));
             }
 
+            if (newSeconds.Count != newOrder.Count)
+            {
+                throw new ArgumentException(
+                    $"Expected {newOrder.Count} durations, got {newSeconds.Count}.", nameof(newSeconds));
+            }
+
             order.Clear();
             order.AddRange(newOrder);
+            seconds.Clear();
+            seconds.AddRange(newSeconds);
             TurnIndex = NotStarted;
         }
 

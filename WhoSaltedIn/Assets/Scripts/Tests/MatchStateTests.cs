@@ -8,11 +8,12 @@ namespace Game.Tests
     public class MatchStateTests
     {
         static readonly ulong[] Order = { 10, 20, 30 };
+        static readonly int[] Seconds = { 20, 30, 40 };
 
         static MatchState Started()
         {
             var state = new MatchState();
-            state.Apply(new MatchStarted(Order));
+            state.Apply(new MatchStarted(Order, Seconds));
             return state;
         }
 
@@ -26,11 +27,35 @@ namespace Game.Tests
         }
 
         [Test]
-        public void MatchStarted_SetsOrderButNoTurnYet()
+        public void MatchStarted_SetsScheduleButNoTurnYet()
         {
             var state = Started();
             CollectionAssert.AreEqual(Order, state.Order);
+            CollectionAssert.AreEqual(Seconds, state.Seconds);
             Assert.AreEqual(MatchState.NotStarted, state.TurnIndex);
+            Assert.IsNull(state.CurrentTurnSeconds);
+        }
+
+        [Test]
+        public void CurrentTurnSeconds_FollowsTurnIndex()
+        {
+            var state = Started();
+
+            state.Apply(new TurnAdvanced(0));
+            Assert.AreEqual(20, state.CurrentTurnSeconds);
+
+            state.Apply(new TurnAdvanced(2));
+            Assert.AreEqual(40, state.CurrentTurnSeconds);
+
+            state.Apply(new TurnAdvanced(Order.Length));
+            Assert.IsNull(state.CurrentTurnSeconds);
+        }
+
+        [Test]
+        public void MatchStarted_RejectsMismatchedSecondsLength()
+        {
+            Assert.Throws<ArgumentException>(
+                () => new MatchState().Apply(new MatchStarted(Order, new[] { 20, 30 })));
         }
 
         [Test]
@@ -63,7 +88,7 @@ namespace Game.Tests
         {
             var events = new List<IGameEvent>
             {
-                new MatchStarted(Order),
+                new MatchStarted(Order, Seconds),
                 new TurnAdvanced(0),
                 new TurnAdvanced(1),
                 new TurnAdvanced(2)

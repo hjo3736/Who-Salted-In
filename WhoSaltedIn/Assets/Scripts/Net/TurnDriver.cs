@@ -7,8 +7,9 @@ namespace Game.Net
 {
     public sealed class TurnDriver : NetworkBehaviour
     {
-        [SerializeField] float turnSeconds = 60f;
-        [SerializeField] int rounds = 2;
+        [SerializeField] int averageTurnSeconds = 30;
+        [SerializeField] int minTurnSeconds = 20;
+        [SerializeField] int warnSeconds = 10;
         [SerializeField] int minPlayers = 3;
         [SerializeField] VoiceCheck voice;
 
@@ -16,6 +17,7 @@ namespace Game.Net
 
         float remaining;
         bool running;
+        bool warned;
 
         public override void OnNetworkSpawn()
         {
@@ -46,39 +48,56 @@ namespace Game.Net
             }
 
             var players = NetworkManager.ConnectedClientsIds.ToList();
+            var pacing = MatchPacing.ForPlayers(players.Count, averageTurnSeconds, minTurnSeconds);
             var seed = Random.Range(int.MinValue, int.MaxValue);
-            var order = TurnOrder.Build(players, rounds, seed);
+
+            var schedule = TurnSchedule.Build(
+                players,
+                pacing.Rounds,
+                pacing.SecondsPerPlayer,
+                pacing.MinSeconds,
+                pacing.MaxSeconds,
+                seed);
 
             running = true;
-            remaining = turnSeconds;
 
-            StartMatchRpc(order.ToArray(), seed);
+            Debug.Log($"[Turn] pacing players={pacing.PlayerCount} rounds={pacing.Rounds} " +
+                      $"perPlayer={pacing.SecondsPerPlayer}s range={pacing.MinSeconds}-{pacing.MaxSeconds}s " +
+                      $"match~{pacing.EstimatedMatchSeconds}s wait~{pacing.EstimatedWaitSeconds}s");
+
+            StartMatchRpc(schedule.Order.ToArray(), schedule.Seconds.ToArray());
             AdvanceTurnRpc(0);
         }
 
         void Update()
         {
-            if (!IsServer || !running || state.IsFinished)
+            if (!running || !state.IsRunning)
             {
                 return;
             }
 
             remaining -= Time.deltaTime;
 
-            if (remaining > 0f)
+            if (!warned && remaining <= warnSeconds)
             {
-                return;
+                warned = true;
+
+                if (state.IsCurrentPlayer(NetworkManager.LocalClientId))
+                {
+                    Debug.Log($"[Turn] {warnSeconds}s left");
+                }
             }
 
-            remaining = turnSeconds;
-            AdvanceTurnRpc(state.TurnIndex + 1);
+            if (IsServer && remaining <= 0f)
+            {
+                AdvanceTurnRpc(state.TurnIndex + 1);
+            }
         }
 
         [Rpc(SendTo.Everyone)]
-        void StartMatchRpc(ulong[] order, int seed)
+        void StartMatchRpc(ulong[] order, int[] seconds)
         {
-            state.Apply(new MatchStarted(order));
-            Debug.Log($"[Turn] match started seed={seed} order=[{string.Join(" ", order)}]");
+            state.Apply(new MatchStarted(order, seconds));
         }
 
         [Rpc(SendTo.Everyone)]
@@ -89,14 +108,21 @@ namespace Game.Net
             var me = NetworkManager.LocalClientId;
             var mine = state.IsCurrentPlayer(me);
 
+            warned = false;
+            remaining = state.CurrentTurnSeconds ?? 0f;
+
             if (state.IsFinished)
             {
                 running = false;
                 Debug.Log($"[Turn] match finished after {state.Order.Count} turns");
             }
+            else if (mine)
+            {
+                Debug.Log($"[Turn] {turnIndex + 1}/{state.Order.Count} my turn");
+            }
             else
             {
-                Debug.Log($"[Turn] {turnIndex + 1}/{state.Order.Count} cook={state.CurrentPlayer} me={me} mine={mine}");
+                Debug.Log($"[Turn] {turnIndex + 1}/{state.Order.Count} cook={state.CurrentPlayer} waiting");
             }
 
             if (voice != null)
