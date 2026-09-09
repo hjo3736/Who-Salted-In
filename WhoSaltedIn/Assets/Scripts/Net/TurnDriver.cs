@@ -12,8 +12,9 @@ namespace Game.Net
         [SerializeField] int warnSeconds = 10;
         [SerializeField] int minPlayers = 3;
         [SerializeField] VoiceCheck voice;
+        [SerializeField] MatchRuntime runtime;
 
-        readonly MatchState state = new MatchState();
+        MatchState state => runtime.State;
 
         float remaining;
         bool running;
@@ -115,6 +116,11 @@ namespace Game.Net
             {
                 running = false;
                 Debug.Log($"[Turn] match finished after {state.Order.Count} turns");
+
+                if (IsServer)
+                {
+                    ReportMatch();
+                }
             }
             else if (mine)
             {
@@ -128,6 +134,36 @@ namespace Game.Net
             if (voice != null)
             {
                 _ = voice.ApplyTurnAsync(mine);
+            }
+        }
+
+        void ReportMatch()
+        {
+            var report = KitchenReport.Of(runtime.Recipe, state.Kitchen);
+
+            Debug.Log(report.IsClean
+                ? "[Result] 요리 성공"
+                : $"[Result] 중복=[{string.Join(" ", report.Duplicated)}] 누락=[{string.Join(" ", report.Missing)}]");
+
+            foreach (var step in runtime.Recipe.Steps)
+            {
+                Debug.Log($"[Result] {step.Id}: {state.Kitchen.CountOf(step.Id)}회");
+            }
+
+            foreach (var entry in state.Log)
+            {
+                switch (entry)
+                {
+                    case StepPerformed performed:
+                        Debug.Log($"[Log] {performed.Player} → {performed.StepId}");
+                        break;
+                    case Observed observed:
+                        Debug.Log($"[Log] {observed.Player} 관측 {observed.StepId} → \"{observed.Reading}\"");
+                        break;
+                    case TurnAdvanced advanced:
+                        Debug.Log($"[Log] --- turn {advanced.TurnIndex + 1} ---");
+                        break;
+                }
             }
         }
     }

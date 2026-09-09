@@ -9,12 +9,15 @@ namespace Game.Core
 
         readonly List<ulong> order = new List<ulong>();
         readonly List<int> seconds = new List<int>();
+        readonly List<IGameEvent> log = new List<IGameEvent>();
 
         public KitchenState Kitchen { get; } = new KitchenState();
 
         public IReadOnlyList<ulong> Order => order;
 
         public IReadOnlyList<int> Seconds => seconds;
+
+        public IReadOnlyList<IGameEvent> Log => log;
 
         public int TurnIndex { get; private set; } = NotStarted;
 
@@ -36,6 +39,7 @@ namespace Game.Core
             }
 
             gameEvent.Apply(this);
+            log.Add(gameEvent);
         }
 
         internal void SetSchedule(IReadOnlyList<ulong> newOrder, IReadOnlyList<int> newSeconds)

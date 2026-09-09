@@ -503,6 +503,9 @@ GameObject:
   - component: {fileID: 904359115}
   - component: {fileID: 904359114}
   - component: {fileID: 904359116}
+  - component: {fileID: 904359119}
+  - component: {fileID: 904359118}
+  - component: {fileID: 904359117}
   m_Layer: 0
   m_Name: Turn Driver
   m_TagString: Untagged
@@ -570,6 +573,47 @@ MonoBehaviour:
   warnSeconds: 10
   minPlayers: 3
   voice: {fileID: 181084350}
+  runtime: {fileID: 904359119}
+--- !u!114 &904359117
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 904359113}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a96f732582da89a408cd47e72998a012, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Unity::Game.Unity.KitchenInput
+  runtime: {fileID: 904359119}
+--- !u!114 &904359118
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 904359113}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b27f024726d0ad4d8b7c00b37e21281, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Net::Game.Net.KitchenDriver
+  ShowTopMostFoldoutHeaderGroup: 1
+  runtime: {fileID: 904359119}
+--- !u!114 &904359119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 904359113}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f435f2782a9ad247a5159e9907b3174, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Net::Game.Net.MatchRuntime
+  kitchen: {fileID: 904359118}
 --- !u!1 &1719975907
 GameObject:
   m_ObjectHideFlags: 0

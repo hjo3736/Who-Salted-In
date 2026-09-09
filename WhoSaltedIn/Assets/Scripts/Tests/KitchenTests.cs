@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Game.Core;
 using NUnit.Framework;
@@ -125,6 +126,59 @@ namespace Game.Tests
             var report = KitchenReport.Of(recipe, state.Kitchen);
 
             Assert.IsTrue(report.IsClean);
+        }
+
+        [Test]
+        public void DistinctReadings_CollapseRepeatedLabels()
+        {
+            var salt = PrototypeRecipe.Create()[PrototypeRecipe.AddSalt];
+
+            CollectionAssert.AreEqual(
+                new[] { "간이 약한 것 같다", "간이 맞는 것 같다", "짠 것 같다" },
+                salt.DistinctReadings);
+        }
+
+        [Test]
+        public void ReadingIndex_LeaksNothingBetweenOnceAndTwice()
+        {
+            var salt = PrototypeRecipe.Create()[PrototypeRecipe.AddSalt];
+
+            Assert.AreEqual(0, salt.ReadingIndexFor(0));
+            Assert.AreEqual(1, salt.ReadingIndexFor(1));
+            Assert.AreEqual(1, salt.ReadingIndexFor(2));
+            Assert.AreEqual(2, salt.ReadingIndexFor(3));
+        }
+
+        [Test]
+        public void ReadingIndex_IsMinusOneWhenUnobservable()
+        {
+            var recipe = PrototypeRecipe.Create();
+
+            Assert.AreEqual(-1, recipe[PrototypeRecipe.TurnOnHeat].ReadingIndexFor(0));
+            Assert.AreEqual(-1, recipe[PrototypeRecipe.ChopOnion].ReadingIndexFor(1));
+        }
+
+        [Test]
+        public void Log_RecordsEveryAppliedEvent()
+        {
+            var state = Started();
+
+            state.Apply(new Observed(10, PrototypeRecipe.AddSalt, "간이 약한 것 같다"));
+            state.Apply(new StepPerformed(10, PrototypeRecipe.AddSalt));
+
+            Assert.AreEqual(3, state.Log.Count);
+            Assert.IsInstanceOf<MatchStarted>(state.Log[0]);
+            Assert.IsInstanceOf<Observed>(state.Log[1]);
+            Assert.IsInstanceOf<StepPerformed>(state.Log[2]);
+        }
+
+        [Test]
+        public void Log_DoesNotRecordRejectedEvents()
+        {
+            var state = new MatchState();
+
+            Assert.Throws<InvalidOperationException>(() => state.Apply(new TurnAdvanced(0)));
+            Assert.AreEqual(0, state.Log.Count);
         }
 
         [Test]

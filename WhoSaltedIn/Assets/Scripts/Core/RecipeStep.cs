@@ -15,6 +15,8 @@ namespace Game.Core
 
         public IReadOnlyList<string> Readings { get; }
 
+        public IReadOnlyList<string> DistinctReadings { get; }
+
         public RecipeStep(
             string id,
             bool observable,
@@ -43,6 +45,45 @@ namespace Game.Core
             Accumulation = accumulation;
             RequiredCount = requiredCount;
             Readings = readings;
+
+            if (readings == null)
+            {
+                DistinctReadings = null;
+            }
+            else
+            {
+                var distinct = new List<string>();
+
+                foreach (var reading in readings)
+                {
+                    if (!distinct.Contains(reading))
+                    {
+                        distinct.Add(reading);
+                    }
+                }
+
+                DistinctReadings = distinct;
+            }
+        }
+
+        public int ReadingIndexFor(int count)
+        {
+            var reading = ReadingFor(count);
+
+            if (reading == null || Observable)
+            {
+                return -1;
+            }
+
+            for (var i = 0; i < DistinctReadings.Count; i++)
+            {
+                if (DistinctReadings[i] == reading)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         public bool CanBeObserved => Observable || Readings != null;
