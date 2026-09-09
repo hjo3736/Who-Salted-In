@@ -17,10 +17,10 @@ namespace Game.Core
 
         public static Recipe Create() => new Recipe(new[]
         {
-            new RecipeStep(ChopOnion, true, Accumulation.Idempotent),
-            new RecipeStep(PourWater, true, Accumulation.Cumulative),
-            new RecipeStep(TurnOnHeat, false, Accumulation.Idempotent),
-            new RecipeStep(AddSalt, false, Accumulation.Cumulative, 1, SaltReadings)
+            new RecipeStep(ChopOnion, true, Accumulation.Idempotent, 1, null, "파 썰기"),
+            new RecipeStep(PourWater, true, Accumulation.Cumulative, 1, null, "물 붓기"),
+            new RecipeStep(TurnOnHeat, false, Accumulation.Idempotent, 1, null, "불 켜기"),
+            new RecipeStep(AddSalt, false, Accumulation.Cumulative, 1, SaltReadings, "소금 넣기")
         });
     }
 }

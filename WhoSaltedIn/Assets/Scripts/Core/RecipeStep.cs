@@ -7,6 +7,8 @@ namespace Game.Core
     {
         public string Id { get; }
 
+        public string DisplayName { get; }
+
         public bool Observable { get; }
 
         public Accumulation Accumulation { get; }
@@ -22,7 +24,8 @@ namespace Game.Core
             bool observable,
             Accumulation accumulation,
             int requiredCount = 1,
-            IReadOnlyList<string> readings = null)
+            IReadOnlyList<string> readings = null,
+            string displayName = null)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -41,6 +44,7 @@ namespace Game.Core
             }
 
             Id = id;
+            DisplayName = string.IsNullOrWhiteSpace(displayName) ? id : displayName;
             Observable = observable;
             Accumulation = accumulation;
             RequiredCount = requiredCount;

@@ -88,7 +88,7 @@ namespace Game.Net
 
         [Rpc(SendTo.SpecifiedInParams)]
         void StepDoneRpc(int stepIndex, RpcParams rpcParams) =>
-            Debug.Log($"[Kitchen] {runtime.Recipe.Steps[stepIndex].Id} 했다");
+            Debug.Log($"[Kitchen] {runtime.Recipe.Steps[stepIndex].DisplayName} 했다");
 
         [Rpc(SendTo.SpecifiedInParams)]
         void TasteResultRpc(int stepIndex, int readingIndex, RpcParams rpcParams)
@@ -96,8 +96,8 @@ namespace Game.Net
             var step = runtime.Recipe.Steps[stepIndex];
 
             Debug.Log(readingIndex < 0
-                ? $"[Kitchen] {step.Id} 는 알 방법이 없다"
-                : $"[Kitchen] {step.Id} — {step.DistinctReadings[readingIndex]}");
+                ? $"[Kitchen] {step.DisplayName} 는 알 방법이 없다"
+                : $"[Kitchen] {step.DistinctReadings[readingIndex]}");
         }
 
         [Rpc(SendTo.SpecifiedInParams)]
@@ -108,8 +108,8 @@ namespace Game.Net
             for (var i = 0; i < counts.Length; i++)
             {
                 Debug.Log(counts[i] < 0
-                    ? $"[Kitchen] {steps[i].Id} — 보이지 않는다"
-                    : $"[Kitchen] {steps[i].Id} — {counts[i]}회");
+                    ? $"[Kitchen] {steps[i].DisplayName} — 보이지 않는다"
+                    : $"[Kitchen] {steps[i].DisplayName} — {counts[i]}회");
             }
         }
     }

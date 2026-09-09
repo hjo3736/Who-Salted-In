@@ -131,6 +131,8 @@ namespace Game.Net
                 Debug.Log($"[Turn] {turnIndex + 1}/{state.Order.Count} cook={state.CurrentPlayer} waiting");
             }
 
+            runtime.SetMyTurn(mine && !state.IsFinished);
+
             if (voice != null)
             {
                 _ = voice.ApplyTurnAsync(mine);
