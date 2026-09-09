@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Unity.Services.Vivox;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Game.Net
 {
@@ -12,8 +11,10 @@ namespace Game.Net
         const string LobbyChannel = "lobby";
         const string KitchenChannel = "kitchen";
 
+        bool ready;
         bool inKitchen;
         bool switching;
+        bool? pending;
 
         public async Task RunAsync()
         {
@@ -28,20 +29,30 @@ namespace Game.Net
 
             await VivoxService.Instance.LoginAsync();
             await VivoxService.Instance.JoinGroupChannelAsync(LobbyChannel, ChatCapability.AudioOnly);
+
+            ready = true;
+
+            if (pending.HasValue)
+            {
+                var wanted = pending.Value;
+                pending = null;
+                await ApplyTurnAsync(wanted);
+            }
         }
 
-        void Update()
+        public async Task ApplyTurnAsync(bool myTurn)
         {
-            if (switching || Keyboard.current == null || !Keyboard.current.kKey.wasPressedThisFrame)
+            if (!ready || switching)
+            {
+                pending = myTurn;
+                return;
+            }
+
+            if (myTurn == inKitchen)
             {
                 return;
             }
 
-            _ = SwitchAsync();
-        }
-
-        async Task SwitchAsync()
-        {
             switching = true;
 
             var from = inKitchen ? KitchenChannel : LobbyChannel;
@@ -60,6 +71,13 @@ namespace Game.Net
             finally
             {
                 switching = false;
+            }
+
+            if (pending.HasValue)
+            {
+                var wanted = pending.Value;
+                pending = null;
+                await ApplyTurnAsync(wanted);
             }
         }
 

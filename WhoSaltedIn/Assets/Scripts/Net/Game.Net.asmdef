@@ -7,8 +7,7 @@
         "Unity.Services.Core",
         "Unity.Services.Authentication",
         "Unity.Services.Multiplayer",
-        "Unity.Services.Vivox",
-        "Unity.InputSystem"
+        "Unity.Services.Vivox"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
