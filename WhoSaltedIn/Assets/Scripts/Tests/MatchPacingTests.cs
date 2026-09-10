@@ -12,30 +12,40 @@ namespace Game.Tests
         public void SmallParty_RunsThreeRounds()
         {
             Assert.AreEqual(3, For(3).Rounds);
-            Assert.AreEqual(3, For(6).Rounds);
+            Assert.AreEqual(3, For(8).Rounds);
         }
 
         [Test]
         public void LargeParty_DropsToTwoRounds()
         {
-            Assert.AreEqual(2, For(7).Rounds);
-            Assert.AreEqual(2, For(8).Rounds);
+            Assert.AreEqual(2, For(9).Rounds);
+            Assert.AreEqual(2, For(12).Rounds);
         }
 
         [Test]
         public void SecondsPerPlayer_IsRoundsTimesAverage()
         {
             Assert.AreEqual(90, For(3).SecondsPerPlayer);
-            Assert.AreEqual(60, For(8).SecondsPerPlayer);
+            Assert.AreEqual(90, For(8).SecondsPerPlayer);
         }
 
         [Test]
-        public void MatchLengthStaysUnderTenMinutes()
+        public void MatchLengthStaysUnderTwelveMinutes()
         {
             for (var players = 3; players <= 8; players++)
             {
-                Assert.LessOrEqual(For(players).EstimatedMatchSeconds, 600, $"{players} players");
+                Assert.LessOrEqual(For(players).EstimatedMatchSeconds, 720, $"{players} players");
             }
+        }
+
+        [Test]
+        public void RangeIsSymmetricAroundTheAverage()
+        {
+            var pacing = MatchPacing.ForPlayers(3, 30, 20);
+
+            Assert.AreEqual(20, pacing.MinSeconds);
+            Assert.AreEqual(40, pacing.MaxSeconds);
+            Assert.AreEqual(90, pacing.SecondsPerPlayer);
         }
 
         [Test]

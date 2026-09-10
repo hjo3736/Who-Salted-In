@@ -6,7 +6,7 @@ namespace Game.Core
     {
         public const int RoundsWhenSmallParty = 3;
         public const int RoundsWhenLargeParty = 2;
-        public const int LargePartyThreshold = 7;
+        public const int LargePartyThreshold = 9;
 
         public int PlayerCount { get; }
         public int Rounds { get; }
@@ -53,7 +53,7 @@ namespace Game.Core
                 ? RoundsWhenSmallParty
                 : RoundsWhenLargeParty;
 
-            var maxSeconds = averageTurnSeconds + (averageTurnSeconds - minSeconds) * 3 / 2;
+            var maxSeconds = averageTurnSeconds * 2 - minSeconds;
 
             return new MatchPacing(
                 playerCount,
