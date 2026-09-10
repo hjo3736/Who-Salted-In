@@ -9,6 +9,24 @@ namespace Game.Core
 
         public string DisplayName { get; }
 
+        public float WorkSeconds { get; }
+
+        public float ObserveSeconds { get; }
+
+        public IReadOnlyList<string> Requires { get; }
+
+        public string RequiredItem { get; }
+
+        public string ProducesItem { get; }
+
+        public bool ConsumesItem { get; }
+
+        public IReadOnlyList<string> RequiredNearby { get; }
+
+        public string NearbyBecomes { get; }
+
+        public string ObserveItem { get; }
+
         public bool Observable { get; }
 
         public Accumulation Accumulation { get; }
@@ -25,7 +43,16 @@ namespace Game.Core
             Accumulation accumulation,
             int requiredCount = 1,
             IReadOnlyList<string> readings = null,
-            string displayName = null)
+            string displayName = null,
+            float workSeconds = 3f,
+            float observeSeconds = 3f,
+            IReadOnlyList<string> requires = null,
+            string requiredItem = null,
+            string producesItem = null,
+            bool consumesItem = false,
+            IReadOnlyList<string> requiredNearby = null,
+            string nearbyBecomes = null,
+            string observeItem = null)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -44,6 +71,15 @@ namespace Game.Core
             }
 
             Id = id;
+            Requires = requires ?? System.Array.Empty<string>();
+            RequiredItem = requiredItem ?? KitchenItems.None;
+            ProducesItem = producesItem ?? KitchenItems.None;
+            ConsumesItem = consumesItem;
+            RequiredNearby = requiredNearby ?? System.Array.Empty<string>();
+            NearbyBecomes = nearbyBecomes ?? KitchenItems.None;
+            ObserveItem = observeItem ?? KitchenItems.None;
+            WorkSeconds = workSeconds;
+            ObserveSeconds = observeSeconds;
             DisplayName = string.IsNullOrWhiteSpace(displayName) ? id : displayName;
             Observable = observable;
             Accumulation = accumulation;

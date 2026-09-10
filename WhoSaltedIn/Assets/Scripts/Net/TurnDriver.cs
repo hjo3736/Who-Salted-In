@@ -7,7 +7,7 @@ namespace Game.Net
 {
     public sealed class TurnDriver : NetworkBehaviour
     {
-        [SerializeField] int averageTurnSeconds = 30;
+        [SerializeField] int averageTurnSeconds = 45;
         [SerializeField] int minTurnSeconds = 20;
         [SerializeField] int warnSeconds = 10;
         [SerializeField] int minPlayers = 3;

@@ -182,6 +182,142 @@ namespace Game.Tests
         }
 
         [Test]
+        public void Interrupt_LeavesPartialProgressForTheNextCook()
+        {
+            var state = Started();
+
+            state.Apply(new StepInterrupted(10, PrototypeRecipe.ChopOnion, 3.5f));
+
+            Assert.AreEqual(3.5f, state.Kitchen.ProgressOf(PrototypeRecipe.ChopOnion));
+            Assert.AreEqual(0, state.Kitchen.CountOf(PrototypeRecipe.ChopOnion));
+
+            var report = KitchenReport.Of(PrototypeRecipe.Create(), state.Kitchen);
+            CollectionAssert.Contains(report.Missing, PrototypeRecipe.ChopOnion);
+        }
+
+        [Test]
+        public void FinishingAStep_ClearsItsPartialProgress()
+        {
+            var state = Started();
+
+            state.Apply(new StepInterrupted(10, PrototypeRecipe.ChopOnion, 3.5f));
+            state.Apply(new StepPerformed(20, PrototypeRecipe.ChopOnion));
+
+            Assert.AreEqual(0f, state.Kitchen.ProgressOf(PrototypeRecipe.ChopOnion));
+            Assert.AreEqual(1, state.Kitchen.CountOf(PrototypeRecipe.ChopOnion));
+        }
+
+        [Test]
+        public void SaltIsCheaperThanCheckingIt()
+        {
+            var recipe = PrototypeRecipe.Create();
+            var salt = recipe[PrototypeRecipe.AddSalt];
+
+            Assert.Less(salt.WorkSeconds, salt.ObserveSeconds);
+        }
+
+        [Test]
+        public void ObservableStepsTakeLongEnoughToBeInterrupted()
+        {
+            var recipe = PrototypeRecipe.Create();
+
+            Assert.Greater(recipe[PrototypeRecipe.ChopOnion].WorkSeconds, 3f);
+        }
+
+        [Test]
+        public void Progress_RejectsNegativeValues()
+        {
+            var state = Started();
+
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => state.Apply(new StepInterrupted(10, PrototypeRecipe.ChopOnion, -1f)));
+        }
+
+        [Test]
+        public void AddingOnion_RequiresChoppingFirst()
+        {
+            var recipe = PrototypeRecipe.Create();
+            var state = Started();
+
+            Assert.AreEqual(
+                PrototypeRecipe.ChopOnion,
+                recipe.UnmetRequirement(PrototypeRecipe.AddOnion, state.Kitchen));
+
+            state.Apply(new StepPerformed(10, PrototypeRecipe.ChopOnion));
+
+            Assert.IsNull(recipe.UnmetRequirement(PrototypeRecipe.AddOnion, state.Kitchen));
+        }
+
+        [Test]
+        public void HalfChoppedOnion_DoesNotSatisfyTheRequirement()
+        {
+            var recipe = PrototypeRecipe.Create();
+            var state = Started();
+
+            state.Apply(new StepInterrupted(10, PrototypeRecipe.ChopOnion, 5.9f));
+
+            Assert.AreEqual(
+                PrototypeRecipe.ChopOnion,
+                recipe.UnmetRequirement(PrototypeRecipe.AddOnion, state.Kitchen));
+        }
+
+        [Test]
+        public void SaltHasNoRequirements()
+        {
+            var recipe = PrototypeRecipe.Create();
+
+            CollectionAssert.IsEmpty(recipe[PrototypeRecipe.AddSalt].Requires);
+        }
+
+        [Test]
+        public void ChoppingNeedsAKnifeAndABoardAndAnOnion()
+        {
+            var chop = PrototypeRecipe.Create()[PrototypeRecipe.ChopOnion];
+
+            Assert.AreEqual(KitchenItems.Knife, chop.RequiredItem);
+            CollectionAssert.AreEqual(
+                new[] { KitchenItems.Board, KitchenItems.Onion },
+                chop.RequiredNearby);
+            Assert.AreEqual(KitchenItems.ChoppedOnion, chop.NearbyBecomes);
+        }
+
+        [Test]
+        public void EveryPotStepNeedsThePotInPlace()
+        {
+            var recipe = PrototypeRecipe.Create();
+
+            foreach (var id in new[]
+                     {
+                         PrototypeRecipe.AddOnion,
+                         PrototypeRecipe.PourWater,
+                         PrototypeRecipe.TurnOnHeat,
+                         PrototypeRecipe.AddSalt
+                     })
+            {
+                CollectionAssert.Contains(recipe[id].RequiredNearby, KitchenItems.Pot, id);
+            }
+        }
+
+        [Test]
+        public void TastingNeedsALadleButSaltingDoesNot()
+        {
+            var salt = PrototypeRecipe.Create()[PrototypeRecipe.AddSalt];
+
+            Assert.AreEqual(KitchenItems.Ladle, salt.ObserveItem);
+            Assert.AreEqual(KitchenItems.SaltShaker, salt.RequiredItem);
+        }
+
+        [Test]
+        public void PouringWaterNeedsAFilledJug()
+        {
+            var recipe = PrototypeRecipe.Create();
+
+            Assert.AreEqual(KitchenItems.FullWaterJug, recipe[PrototypeRecipe.PourWater].RequiredItem);
+            Assert.AreEqual(KitchenItems.FullWaterJug, recipe[PrototypeRecipe.FillJug].ProducesItem);
+            CollectionAssert.Contains(recipe[PrototypeRecipe.PourWater].Requires, PrototypeRecipe.FillJug);
+        }
+
+        [Test]
         public void ReplayingEvents_RebuildsTheSameKitchen()
         {
             var events = new List<IGameEvent>

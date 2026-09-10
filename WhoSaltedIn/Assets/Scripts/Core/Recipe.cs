@@ -50,5 +50,33 @@ namespace Game.Core
         }
 
         public bool Contains(string stepId) => byId.ContainsKey(stepId);
+
+        public int IndexOf(string stepId)
+        {
+            for (var i = 0; i < Steps.Count; i++)
+            {
+                if (Steps[i].Id == stepId)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public string UnmetRequirement(string stepId, KitchenState kitchen)
+        {
+            var step = this[stepId];
+
+            foreach (var required in step.Requires)
+            {
+                if (kitchen.CountOf(required) < this[required].RequiredCount)
+                {
+                    return required;
+                }
+            }
+
+            return null;
+        }
     }
 }

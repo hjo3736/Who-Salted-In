@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Game.Core;
 using Game.Net;
 using Game.Unity;
 using Unity.Netcode;
@@ -34,7 +35,7 @@ namespace Game.Editor
 
             var match = CreateMatchObject();
             var player = CreatePlayer(match);
-            var kitchen = CreateKitchen();
+            var kitchen = CreateKitchen(match);
 
             WirePresence(match, kitchen, player, lobbyCamera);
 
@@ -141,7 +142,7 @@ namespace Game.Editor
             var runtime = match.GetComponent<MatchRuntime>();
 
             var player = new GameObject("Player");
-            player.transform.position = new Vector3(0f, 1.1f, -3.2f);
+            player.transform.position = new Vector3(1.2f, 1.1f, -2.4f);
 
             var controller = player.AddComponent<CharacterController>();
             controller.height = 1.8f;
@@ -159,48 +160,109 @@ namespace Game.Editor
             camera.fieldOfView = 90f;
             camera.nearClipPlane = 0.05f;
 
+            var hand = new GameObject("Hand").transform;
+            hand.SetParent(head, false);
+            hand.localPosition = new Vector3(0.32f, -0.28f, 0.55f);
+
             var rig = player.AddComponent<PlayerRig>();
             Set(rig, "head", head);
 
             var interactor = player.AddComponent<Interactor>();
             Set(interactor, "runtime", runtime);
             Set(interactor, "head", head);
+            Set(interactor, "hand", hand);
 
             return player;
         }
 
-        static GameObject CreateKitchen()
+        static GameObject CreateKitchen(GameObject match)
         {
             var kitchen = new GameObject("Kitchen");
+            var t = kitchen.transform;
 
-            Box(kitchen.transform, "Floor", new Vector3(0f, -0.1f, 0f), new Vector3(8f, 0.2f, 8f), Grey(0.35f));
+            Box(t, "Floor", new Vector3(0f, -0.1f, 0f), new Vector3(8f, 0.2f, 8f), Grey(0.35f));
+            Box(t, "Pantry Floor", new Vector3(-6.8f, -0.1f, 0f), new Vector3(5.5f, 0.2f, 8f), Grey(0.3f));
 
-            Box(kitchen.transform, "Wall North", new Vector3(0f, 1.5f, 4.1f), new Vector3(8f, 3f, 0.2f), Grey(0.5f));
-            Box(kitchen.transform, "Wall South", new Vector3(0f, 1.5f, -4.1f), new Vector3(8f, 3f, 0.2f), Grey(0.5f));
-            Box(kitchen.transform, "Wall East", new Vector3(4.1f, 1.5f, 0f), new Vector3(0.2f, 3f, 8f), Grey(0.5f));
-            Box(kitchen.transform, "Wall West", new Vector3(-4.1f, 1.5f, 0f), new Vector3(0.2f, 3f, 8f), Grey(0.5f));
+            Box(t, "Wall North", new Vector3(-1.8f, 1.5f, 4.1f), new Vector3(11.5f, 3f, 0.2f), Grey(0.5f));
+            Box(t, "Wall South", new Vector3(-1.8f, 1.5f, -4.1f), new Vector3(11.5f, 3f, 0.2f), Grey(0.5f));
+            Box(t, "Wall East", new Vector3(4.1f, 1.5f, 0f), new Vector3(0.2f, 3f, 8f), Grey(0.5f));
+            Box(t, "Wall Far West", new Vector3(-9.6f, 1.5f, 0f), new Vector3(0.2f, 3f, 8f), Grey(0.5f));
 
-            Box(kitchen.transform, "Counter North", new Vector3(0f, 0.45f, 3.4f), new Vector3(7f, 0.9f, 0.8f), Grey(0.45f));
-            Box(kitchen.transform, "Counter East", new Vector3(3.4f, 0.45f, -1f), new Vector3(0.8f, 0.9f, 4f), Grey(0.45f));
+            Box(t, "Divider North", new Vector3(-4.1f, 1.5f, 2.7f), new Vector3(0.2f, 3f, 2.8f), Grey(0.45f));
+            Box(t, "Divider South", new Vector3(-4.1f, 1.5f, -2.7f), new Vector3(0.2f, 3f, 2.8f), Grey(0.45f));
 
-            Station(kitchen.transform, "도마", new Vector3(-2.4f, 1.0f, 3.4f), new Vector3(0.9f, 0.15f, 0.7f),
-                new Color(0.72f, 0.55f, 0.35f), 0, -1);
+            Box(t, "Counter North", new Vector3(0.4f, 0.45f, 3.4f), new Vector3(6.5f, 0.9f, 0.8f), Grey(0.45f));
+            Box(t, "Tool Shelf", new Vector3(3.4f, 0.95f, -0.5f), new Vector3(0.8f, 0.15f, 5f), Grey(0.55f));
+            Box(t, "Spice Shelf", new Vector3(-1.5f, 0.95f, -3.6f), new Vector3(3f, 0.15f, 0.7f), Grey(0.55f));
+            Box(t, "Pantry Shelf", new Vector3(-8.6f, 0.95f, 0f), new Vector3(1.4f, 0.15f, 5f), Grey(0.5f));
 
-            Station(kitchen.transform, "물통", new Vector3(-0.6f, 1.15f, 3.4f), new Vector3(0.45f, 0.6f, 0.45f),
-                new Color(0.35f, 0.6f, 0.85f), 1, -1);
+            var counter = Station(t, "조리대", new Vector3(-0.6f, 0.95f, 3.4f), new Vector3(1.6f, 0.05f, 0.7f),
+                Grey(0.6f), new[] { 0 }, -1, 1.0f);
 
-            Station(kitchen.transform, "불 스위치", new Vector3(1.2f, 1.1f, 3.4f), new Vector3(0.35f, 0.35f, 0.35f),
-                new Color(0.85f, 0.4f, 0.25f), 2, -1);
+            AddSlot(counter.transform, "Board Slot", new Vector3(0f, 0.09f, 0f),
+                new[] { KitchenItems.Board });
 
-            Station(kitchen.transform, "냄비", new Vector3(2.6f, 1.2f, 3.4f), new Vector3(0.8f, 0.6f, 0.8f),
-                new Color(0.55f, 0.55f, 0.6f), -1, 3);
+            var stove = Station(t, "화구", new Vector3(2.4f, 0.95f, 3.4f), new Vector3(1.0f, 0.06f, 0.7f),
+                new Color(0.3f, 0.3f, 0.32f), new[] { 1, 3, 4, 5 }, 5, 1.0f);
 
-            Station(kitchen.transform, "소금통", new Vector3(3.4f, 1.15f, -2.6f), new Vector3(0.4f, 0.5f, 0.4f),
-                new Color(0.95f, 0.95f, 0.9f), 3, -1);
+            AddSlot(stove.transform, "Pot Slot", new Vector3(0f, 0.26f, 0f),
+                new[] { KitchenItems.Pot });
+
+            Station(t, "싱크대", new Vector3(-2.8f, 0.95f, 3.4f), new Vector3(1.2f, 0.06f, 0.7f),
+                new Color(0.62f, 0.66f, 0.7f), new[] { 2 }, -1, 1.0f);
+
+            var pot = Item(t, "냄비", KitchenItems.Pot, new Vector3(3.4f, 1.2f, 1.4f),
+                new Vector3(0.7f, 0.45f, 0.7f), new Color(0.5f, 0.5f, 0.55f));
+
+            var water = Inner(pot.transform, "Water", new Vector3(0f, -0.08f, 0f),
+                new Vector3(0.6f, 0.1f, 0.6f), new Color(0.45f, 0.7f, 0.9f));
+
+            var onion = Inner(pot.transform, "Onion", new Vector3(0f, 0.08f, 0f),
+                new Vector3(0.35f, 0.06f, 0.35f), new Color(0.6f, 0.85f, 0.4f));
+
+            var contents = pot.AddComponent<PotContents>();
+            Set(contents, "runtime", match.GetComponent<MatchRuntime>());
+            Set(contents, "water", water.transform);
+            Set(contents, "onion", onion.transform);
+            Set(contents, "waterStep", 3);
+            Set(contents, "onionStep", 1);
+
+            var board = Item(t, "도마", KitchenItems.Board, new Vector3(3.4f, 1.1f, 0.4f),
+                new Vector3(0.7f, 0.12f, 0.55f), new Color(0.72f, 0.55f, 0.35f));
+
+            AddSlot(board.transform, "Onion Slot", new Vector3(0f, 0.15f, 0f),
+                new[] { KitchenItems.Onion, KitchenItems.ChoppedOnion });
+
+            Item(t, "칼", KitchenItems.Knife, new Vector3(3.4f, 1.08f, -0.4f),
+                new Vector3(0.12f, 0.06f, 0.55f), new Color(0.8f, 0.82f, 0.85f));
+
+            Item(t, "국자", KitchenItems.Ladle, new Vector3(3.4f, 1.08f, -1.2f),
+                new Vector3(0.14f, 0.08f, 0.6f), new Color(0.75f, 0.7f, 0.5f));
+
+            Item(t, "물병", KitchenItems.WaterJug, new Vector3(3.4f, 1.25f, -2.2f),
+                new Vector3(0.28f, 0.45f, 0.28f), new Color(0.4f, 0.65f, 0.88f));
+
+            Item(t, "소금통", KitchenItems.SaltShaker, new Vector3(-0.6f, 1.2f, -3.6f),
+                new Vector3(0.22f, 0.3f, 0.22f), new Color(0.95f, 0.95f, 0.92f));
+
+            Item(t, "설탕", KitchenItems.SugarJar, new Vector3(-1.5f, 1.2f, -3.6f),
+                new Vector3(0.24f, 0.3f, 0.24f), new Color(0.9f, 0.86f, 0.78f));
+
+            Item(t, "간장", KitchenItems.SoySauce, new Vector3(-2.4f, 1.25f, -3.6f),
+                new Vector3(0.2f, 0.4f, 0.2f), new Color(0.3f, 0.2f, 0.15f));
+
+            Item(t, "파", KitchenItems.Onion, new Vector3(-8.6f, 1.15f, 1.4f),
+                new Vector3(0.16f, 0.16f, 0.6f), new Color(0.85f, 0.95f, 0.6f));
+
+            Item(t, "양파", KitchenItems.Shallot, new Vector3(-8.6f, 1.2f, 0.2f),
+                new Vector3(0.3f, 0.3f, 0.3f), new Color(0.85f, 0.7f, 0.5f));
+
+            Item(t, "쌀", KitchenItems.Rice, new Vector3(-8.6f, 1.2f, -1.0f),
+                new Vector3(0.35f, 0.3f, 0.25f), new Color(0.95f, 0.94f, 0.88f));
 
             var entrance = new GameObject("Entrance").transform;
-            entrance.SetParent(kitchen.transform, false);
-            entrance.localPosition = new Vector3(0f, 1.1f, -3.2f);
+            entrance.SetParent(t, false);
+            entrance.localPosition = new Vector3(1.2f, 1.1f, -2.4f);
             entrance.localRotation = Quaternion.identity;
 
             return kitchen;
@@ -219,19 +281,83 @@ namespace Game.Editor
 
         static GameObject Station(
             Transform parent, string name, Vector3 position, Vector3 size,
-            Color color, int performStep, int tasteStep)
+            Color color, int[] performSteps, int tasteStep, float nearbyRadius)
         {
             var go = Box(parent, name, position, size, color);
 
             var interactable = go.AddComponent<Interactable>();
             Set(interactable, "label", name);
-            Set(interactable, "performStep", performStep);
+            SetInts(interactable, "performSteps", performSteps);
             Set(interactable, "tasteStep", tasteStep);
+            SetFloat(interactable, "nearbyRadius", nearbyRadius);
 
             return go;
         }
 
-        static GameObject Box(Transform parent, string name, Vector3 position, Vector3 size, Color color)
+        static GameObject Item(Transform parent, string name, string itemId, Vector3 position, Vector3 size, Color color)
+        {
+            var go = Box(parent, name, position, size, color);
+
+            var body = go.AddComponent<Rigidbody>();
+            body.mass = 0.5f;
+            body.interpolation = RigidbodyInterpolation.None;
+
+            var holdable = go.AddComponent<Holdable>();
+            Set(holdable, "key", itemId);
+            Set(holdable, "itemId", itemId);
+            Set(holdable, "label", name);
+
+            return go;
+        }
+
+        static void SetFloat(Object target, string field, float value)
+        {
+            var serialized = new SerializedObject(target);
+            serialized.FindProperty(field).floatValue = value;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static void SetInts(Object target, string field, int[] values)
+        {
+            var serialized = new SerializedObject(target);
+            var property = serialized.FindProperty(field);
+
+            property.arraySize = values.Length;
+
+            for (var i = 0; i < values.Length; i++)
+            {
+                property.GetArrayElementAtIndex(i).intValue = values[i];
+            }
+
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static void AddSlot(Transform parent, string name, Vector3 localPosition, string[] accepts)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPosition;
+
+            var slot = go.AddComponent<Slot>();
+            SetStrings(slot, "accepts", accepts);
+        }
+
+        static void SetStrings(Object target, string field, string[] values)
+        {
+            var serialized = new SerializedObject(target);
+            var property = serialized.FindProperty(field);
+
+            property.arraySize = values.Length;
+
+            for (var i = 0; i < values.Length; i++)
+            {
+                property.GetArrayElementAtIndex(i).stringValue = values[i];
+            }
+
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static GameObject Inner(Transform parent, string name, Vector3 position, Vector3 size, Color color)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             go.name = name;
@@ -239,8 +365,25 @@ namespace Game.Editor
             go.transform.localPosition = position;
             go.transform.localScale = size;
             go.GetComponent<Renderer>().sharedMaterial = MaterialFor(color);
+            Object.DestroyImmediate(go.GetComponent<Collider>());
+            go.SetActive(false);
 
             return go;
+        }
+
+        static GameObject Box(Transform parent, string name, Vector3 position, Vector3 size, Color color)
+        {
+            var root = new GameObject(name);
+            root.transform.SetParent(parent, false);
+            root.transform.localPosition = position;
+
+            var visual = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            visual.name = "Visual";
+            visual.transform.SetParent(root.transform, false);
+            visual.transform.localScale = size;
+            visual.GetComponent<Renderer>().sharedMaterial = MaterialFor(color);
+
+            return root;
         }
 
         static readonly Dictionary<string, Material> materials = new Dictionary<string, Material>();
